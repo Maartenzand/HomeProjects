@@ -2,7 +2,7 @@
 
 #define STEP_PIN        3
 #define DIR_PIN         2
-#define ENABLE_PIN      1
+//#define ENABLE_PIN      1
 
 #define MAX_SPEED         1000
 #define CURRENT_SPEED     750

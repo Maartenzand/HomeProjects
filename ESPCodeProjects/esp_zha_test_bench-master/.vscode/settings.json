@@ -1,0 +1,22 @@
+{
+    "idf.flashType": "UART",
+    "idf.espIdfPathWin": "C:\\Users\\maart\\esp\\v5.3.2\\esp-idf",
+    "idf.toolsPathWin": "C:\\Users\\maart\\Espressif",
+    "files.associations": {
+        "esp_zigbee_ha_standard.h": "c",
+        "task.h": "c",
+        "esp_log.h": "c",
+        "esp_timer.h": "c",
+        "string.h": "c",
+        "esp_mac.h": "c",
+        "freertos.h": "c",
+        "main.h": "c",
+        "esp_zigbee_core.h": "c",
+        "zb_config_platform.h": "c",
+        "zb_vendor.h": "c",
+        "uart.h": "c",
+        "compare": "cpp",
+        "cstdint": "cpp"
+    },
+    "idf.portWin": "COM3"
+}
