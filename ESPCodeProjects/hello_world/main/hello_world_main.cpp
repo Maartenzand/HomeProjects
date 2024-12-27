@@ -139,7 +139,7 @@ void app_main(void)
 
     //create & populate cluster list
     esp_zb_cluster_list_t* cluster_list = esp_zb_zcl_cluster_list_create();        
-    esp_zb_cluster_list_add_basic_cluster(cluster_list, createBasicCluster(4, "embedblog", "ESP32H2-DevKit"), ESP_ZB_ZCL_CLUSTER_SERVER_ROLE);
+    esp_zb_cluster_list_add_basic_cluster(cluster_list, createBasicCluster(4, "TestDevice", "ESP32H2-DevKit"), ESP_ZB_ZCL_CLUSTER_SERVER_ROLE);
     
     //create endpoint list and populate it
     esp_zb_ep_list_t* ep_list = esp_zb_ep_list_create();
