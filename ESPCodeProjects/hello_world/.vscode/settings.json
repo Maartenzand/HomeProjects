@@ -1,0 +1,14 @@
+{
+    "C_Cpp.intelliSenseEngine": "default",
+    "idf.espIdfPathWin": "C:\\Users\\maart\\esp\\v5.3.2\\esp-idf",
+    "idf.toolsPathWin": "C:\\Users\\maart\\Espressif",
+    "idf.portWin": "COM3",
+    "idf.flashType": "UART",
+    "idf.openOcdConfigs": [
+        "board/esp32h2-builtin.cfg"
+    ],
+    "files.associations": {
+        "nvs_flash.h": "c",
+        "string.h": "c"
+    }
+}
