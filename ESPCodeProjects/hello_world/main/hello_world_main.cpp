@@ -64,15 +64,38 @@ void esp_zb_app_signal_handler(esp_zb_app_signal_t* signal_struct)
 }
 
 
+static esp_err_t zb_attribute_handler(const esp_zb_zcl_set_attr_value_message_t *message)
+{
+    esp_err_t ret = ESP_OK;
+    bool switch_state = 0;
+
+    ESP_RETURN_ON_FALSE(message, ESP_FAIL, TAG, "Empty message");
+    ESP_RETURN_ON_FALSE(message->info.status == ESP_ZB_ZCL_STATUS_SUCCESS, ESP_ERR_INVALID_ARG, TAG, "Received message: error status(%d)",
+                        message->info.status);
+    ESP_LOGI(TAG, "Received message: endpoint(%d), cluster(0x%x), attribute(0x%x), data size(%d)", message->info.dst_endpoint, message->info.cluster,
+             message->attribute.id, message->attribute.data.size);
+    if (message->info.dst_endpoint == 10) { // Todo magic number
+        if (message->info.cluster == ESP_ZB_ZCL_CLUSTER_ID_ON_OFF) {
+            if (message->attribute.id == ESP_ZB_ZCL_ATTR_ON_OFF_ON_OFF_ID && message->attribute.data.type == ESP_ZB_ZCL_ATTR_TYPE_BOOL) {
+                switch_state = message->attribute.data.value ? *(bool *)message->attribute.data.value : switch_state;
+                ESP_LOGI(TAG, "Switch set to %s", switch_state ? "On" : "Off");
+                //GPIO logic here
+            }
+        }
+    }
+    return ret;
+}
+
+
 static esp_err_t zb_action_handler(esp_zb_core_action_callback_id_t callback_id, const void* message)
 {
+    esp_err_t ret = ESP_OK;
+
     switch (callback_id) 
     {
         case ESP_ZB_CORE_SET_ATTR_VALUE_CB_ID:
         {
-            esp_zb_zcl_set_attr_value_message_t* setAtrMsg = (esp_zb_zcl_set_attr_value_message_t*)message;
-            ESP_LOGI(TAG, "Received message: endpoint %d, cluster 0x%x, attribute 0x%x, data size %d", setAtrMsg->info.dst_endpoint, setAtrMsg->info.cluster,
-                 setAtrMsg->attribute.id, setAtrMsg->attribute.data.size);
+            ret = zb_attribute_handler((esp_zb_zcl_set_attr_value_message_t *)message);
             break;
         }
         case ESP_ZB_CORE_CMD_DEFAULT_RESP_CB_ID:
@@ -85,7 +108,8 @@ static esp_err_t zb_action_handler(esp_zb_core_action_callback_id_t callback_id,
             ESP_LOGW(TAG, "Unhandled Zigbee action 0x%x callback", callback_id);
             break;
     }
-    return ESP_OK;
+    
+    return ret;
 }
 
 
