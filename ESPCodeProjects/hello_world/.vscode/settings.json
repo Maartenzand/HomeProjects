@@ -9,6 +9,7 @@
     ],
     "files.associations": {
         "nvs_flash.h": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "cstring": "cpp"
     }
 }
