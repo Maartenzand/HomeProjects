@@ -111,7 +111,7 @@ void app_main(void)
     // White
     uint16_t hue = 0;  // Hue is niet relevant voor wit, kan elke waarde zijn
     uint32_t saturation = 0;  // Geen verzadiging voor wit
-    uint32_t value = 100;  // Maximale helderheid
+    uint32_t value = 25;  // Maximale helderheid
     
     led_strip_hsv2rgb(hue, saturation, value, &red, &green, &blue);
 

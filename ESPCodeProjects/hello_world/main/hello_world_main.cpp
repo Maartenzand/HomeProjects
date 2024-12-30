@@ -5,53 +5,8 @@ extern "C" void app_main(void);  // Declares app_main as a C function
 #include "nvs_flash.h"
 
 #include <cstring>
-#include <driver/rmt_tx.h> // RMT driver for WS2812
 
 static const char *TAG = "ZB_TEST";
-
-#define LED_PIN 4  // GPIO pin voor WS2812
-#define LED_COUNT 10  // Aantal LED's in de strip
-
-// Configuratie van de RMT
-static void configure_ws2812()
-{
-    rmt_config_t config;
-    config.rmt_mode = RMT_MODE_TX;
-    config.channel = RMT_CHANNEL_0;
-    config.gpio_num = GPIO_NUM_4;
-    config.mem_block_num = 1;
-    config.tx_config.loop_en = false;
-    config.tx_config.carrier_en = false;
-    config.tx_config.idle_level = RMT_IDLE_LEVEL_LOW;
-    config.tx_config.idle_output_en = true;
-
-    ESP_ERROR_CHECK(rmt_config(&config));
-    ESP_ERROR_CHECK(rmt_driver_install(config.channel, 0, 0));
-}
-
-// Functie om kleuren naar de WS2812 te sturen
-void ws2812_send_color(uint8_t red, uint8_t green, uint8_t blue)
-{
-    rmt_item32_t items[LED_COUNT];
-    for (int i = 0; i < LED_COUNT; ++i) {
-        items[i].level0 = 1;
-        items[i].duration0 = red; // Stel de rode component in
-        items[i].level1 = 0;
-        items[i].duration1 = 255 - red;
-
-        items[i].level0 = 1;
-        items[i].duration0 = green; // Stel de groene component in
-        items[i].level1 = 0;
-        items[i].duration1 = 255 - green;
-
-        items[i].level0 = 1;
-        items[i].duration0 = blue; // Stel de blauwe component in
-        items[i].level1 = 0;
-        items[i].duration1 = 255 - blue;
-    }
-
-    ESP_ERROR_CHECK(rmt_write_items(RMT_CHANNEL_0, items, LED_COUNT, true));
-}
 
 static void bdb_start_top_level_commissioning_cb(uint8_t mode_mask)
 {
@@ -162,6 +117,19 @@ esp_zb_attribute_list_t* createBasicCluster(uint8_t powerSource, const char* man
 }
 
 
+esp_zb_attribute_list_t* createOnOffCluster()
+{
+    ESP_LOGI(TAG, "Init OnOff cluster");
+    esp_zb_on_off_cluster_cfg_t sw_in_cfg = {
+    .on_off = false
+    };
+
+    auto cluster = esp_zb_on_off_cluster_create(&sw_in_cfg);
+
+    return cluster;
+}
+
+
 void app_main(void)
 {
     ESP_ERROR_CHECK(nvs_flash_init());
@@ -183,7 +151,9 @@ void app_main(void)
     //create & populate cluster list
     esp_zb_cluster_list_t* cluster_list = esp_zb_zcl_cluster_list_create();        
     esp_zb_cluster_list_add_basic_cluster(cluster_list, createBasicCluster(4, "TestDevice", "ESP32H2-DevKit"), ESP_ZB_ZCL_CLUSTER_SERVER_ROLE);
-    
+
+    esp_zb_cluster_list_add_on_off_cluster(cluster_list, createOnOffCluster(), ESP_ZB_ZCL_CLUSTER_SERVER_ROLE);
+
     //create endpoint list and populate it
     esp_zb_ep_list_t* ep_list = esp_zb_ep_list_create();
     esp_zb_endpoint_config_t endpointConfig;
@@ -197,7 +167,4 @@ void app_main(void)
     esp_zb_core_action_handler_register(zb_action_handler);
     ESP_ERROR_CHECK(esp_zb_start(false));
     esp_zb_stack_main_loop();
-
-    // Stuur een kleur naar de WS2812 LED-strip (bijvoorbeeld rood)
-    //ws2812_send_color(255, 0, 0); // Rood
 }
