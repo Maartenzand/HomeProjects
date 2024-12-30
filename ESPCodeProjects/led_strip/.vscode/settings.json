@@ -8,6 +8,7 @@
     ],
     "idf.flashType": "UART",
     "files.associations": {
-        "led_strip_encoder.h": "c"
+        "led_strip_encoder.h": "c",
+        "rmt_encoder.h": "c"
     }
 }
