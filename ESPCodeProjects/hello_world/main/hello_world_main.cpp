@@ -18,6 +18,8 @@ extern "C" void app_main(void);  // Declares app_main as a C function
 #define EXAMPLE_CHASE_SPEED_MS      100
 
 static const char *TAG = "ZB_TEST";
+rmt_channel_handle_t led_chan = NULL;
+rmt_encoder_handle_t led_encoder = NULL;
 
 
 static uint8_t led_strip_pixels[EXAMPLE_LED_NUMBERS * 3];
@@ -71,6 +73,36 @@ void led_strip_hsv2rgb(uint32_t h, uint32_t s, uint32_t v, uint32_t *r, uint32_t
         *b = rgb_max - rgb_adj;
         break;
     }
+}
+
+
+void set_led_state(bool state) {
+    ESP_LOGI(TAG, "Set led state");
+
+    uint32_t red = 0;
+    uint32_t green = 0;
+    uint32_t blue = 0;
+
+    // Wit instellen
+    uint16_t hue = 0;  // Hue is niet relevant voor wit, kan elke waarde zijn
+    uint32_t saturation = 0;  // Geen verzadiging voor wit
+    uint32_t value = state ? 100 : 0;  // Als state true is, zet de helderheid op 25, anders uit (0)
+
+    led_strip_hsv2rgb(hue, saturation, value, &red, &green, &blue);
+
+    // Stel de LED-waarden in
+    for (int j = 0; j < EXAMPLE_LED_NUMBERS; j++) {
+        led_strip_pixels[j * 3 + 0] = green;  // Groen
+        led_strip_pixels[j * 3 + 1] = blue;   // Blauw
+        led_strip_pixels[j * 3 + 2] = red;    // Rood
+    }
+
+    // Start de transmissie
+    rmt_transmit_config_t tx_config = {
+        .loop_count = 0,  // Geen loop voor de transmissie
+    };
+    ESP_ERROR_CHECK(rmt_transmit(led_chan, led_encoder, led_strip_pixels, sizeof(led_strip_pixels), &tx_config));
+    ESP_ERROR_CHECK(rmt_tx_wait_all_done(led_chan, portMAX_DELAY));
 }
 
 
@@ -146,6 +178,14 @@ static esp_err_t zb_attribute_handler(const esp_zb_zcl_set_attr_value_message_t 
                 switch_state = message->attribute.data.value ? *(bool *)message->attribute.data.value : switch_state;
                 ESP_LOGI(TAG, "Switch set to %s", switch_state ? "On" : "Off");
                 //GPIO logic here
+                if (switch_state)
+                {
+                    set_led_state(true);
+                }
+                else
+                {
+                    set_led_state(false);
+                }
             }
         }
     }
@@ -227,10 +267,9 @@ void app_main(void)
     uint32_t red = 0;
     uint32_t green = 0;
     uint32_t blue = 0;
-    uint16_t start_rgb = 0;
 
     ESP_LOGI(TAG, "Create RMT TX channel");
-    rmt_channel_handle_t led_chan = NULL;
+
     rmt_tx_channel_config_t tx_chan_config = {
         .gpio_num = GPIO_NUM_4,          // GPIO-pin configureren
         .clk_src = RMT_CLK_SRC_DEFAULT,  // Klokbron instellen
@@ -243,7 +282,6 @@ void app_main(void)
     ESP_ERROR_CHECK(rmt_new_tx_channel(&tx_chan_config, &led_chan));
 
     ESP_LOGI(TAG, "Install led strip encoder");
-    rmt_encoder_handle_t led_encoder = NULL;
     led_strip_encoder_config_t encoder_config = {
         .resolution = RMT_LED_STRIP_RESOLUTION_HZ,
     };
@@ -257,23 +295,27 @@ void app_main(void)
         .loop_count = 0,  // Geen loop voor de transmissie
     };
 
-    // Wit instellen
-    uint16_t hue = 0;  // Hue is niet relevant voor wit, kan elke waarde zijn
-    uint32_t saturation = 0;  // Geen verzadiging voor wit
-    uint32_t value = 25;  // Maximale helderheid
 
-    led_strip_hsv2rgb(hue, saturation, value, &red, &green, &blue);
+    // for now set always to false
+    set_led_state(false);
 
-    // Stel de LED-waarden in
-    for (int j = 0; j < EXAMPLE_LED_NUMBERS; j++) {
-        led_strip_pixels[j * 3 + 0] = green;  // Groen
-        led_strip_pixels[j * 3 + 1] = blue;   // Blauw
-        led_strip_pixels[j * 3 + 2] = red;    // Rood
-    }
+    // // Wit instellen
+    // uint16_t hue = 0;  // Hue is niet relevant voor wit, kan elke waarde zijn
+    // uint32_t saturation = 0;  // Geen verzadiging voor wit
+    // uint32_t value = 25;  // Maximale helderheid
 
-    // Transmit de RGB-waarden naar de LEDs
-    ESP_ERROR_CHECK(rmt_transmit(led_chan, led_encoder, led_strip_pixels, sizeof(led_strip_pixels), &tx_config));
-    ESP_ERROR_CHECK(rmt_tx_wait_all_done(led_chan, portMAX_DELAY));
+    // led_strip_hsv2rgb(hue, saturation, value, &red, &green, &blue);
+
+    // // Stel de LED-waarden in
+    // for (int j = 0; j < EXAMPLE_LED_NUMBERS; j++) {
+    //     led_strip_pixels[j * 3 + 0] = green;  // Groen
+    //     led_strip_pixels[j * 3 + 1] = blue;   // Blauw
+    //     led_strip_pixels[j * 3 + 2] = red;    // Rood
+    // }
+
+    // // Transmit de RGB-waarden naar de LEDs
+    // ESP_ERROR_CHECK(rmt_transmit(led_chan, led_encoder, led_strip_pixels, sizeof(led_strip_pixels), &tx_config));
+    // ESP_ERROR_CHECK(rmt_tx_wait_all_done(led_chan, portMAX_DELAY));
 
     //config the radio platform
     esp_zb_platform_config_t config; 
