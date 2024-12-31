@@ -14,7 +14,7 @@ extern "C" void app_main(void);  // Declares app_main as a C function
 #define RMT_LED_STRIP_RESOLUTION_HZ 10000000 // 10MHz resolution, 1 tick = 0.1us (led strip needs a high resolution)
 #define RMT_LED_STRIP_GPIO_NUM      4
 
-#define EXAMPLE_LED_NUMBERS         24
+#define EXAMPLE_LED_NUMBERS         72
 #define EXAMPLE_CHASE_SPEED_MS      100
 
 static const char *TAG = "ZB_TEST";
